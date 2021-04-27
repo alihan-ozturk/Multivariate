@@ -1,0 +1,339 @@
+---
+author: "Alihan Öztürk"
+date: "4/27/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+# Çok Değişkenli İstatistiksel Yöntemler Vize Sınavı
+
+# Alihan Öztürk 20543020
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message=FALSE,warning=FALSE)
+knitr::opts_chunk$set(fig.width=5, fig.height=4)
+```
+
+
+## Soru 1) 
+X′ = [ 1 2 … 6 ] değişkenler sistemi verilsin ( p = 6). Bu değişkenler için 15 birim üzerinde yapılan ölçümlerden elde edilen sonuçlar aşağıda verilmiştir. Temel bileşenler yöntemi ile;
+
+### **a)** 
+m = 6 faktör olacak şekilde faktör analizi modelini oluşturarak sonuçları değerlendiriniz? 
+
+```{r echo=TRUE}
+x1<- c(6,7,8,8,8,8,9,10,10,10,11,11,12,12,15)
+x2<- c(13,16,16,17,17,18,18,19,20,20,20,22,23,24,27)
+x3<- c(2,2,3,2,3,3,3,3,1,2,2,2,3,3,5)
+x4<- c(6,5,5,4,6,6,6,3,2,4,6,1,4,2,5)
+x5<- c(0,1,2,3,4,5,5,6,7,8,9,9,10,11,11)
+x6<- c(81,89,95,96,98,99,100,100,102,103,105,107,114,116,116)
+
+df <- data.frame(x1,x2,x3,x4,x5,x6)
+df
+``` 
+
+Veri hakkında bilgi edinmek için betimsel istatistiklerine bakabiliriz. 
+
+```{r echo=TRUE}
+library(psych)
+describe(df)
+``` 
+
+```{r echo=TRUE}
+par(mfrow=c(1,1))
+boxplot(df)
+``` 
+
+Değişkenlerin ölçüm düzeyleri ve varyansları hakkında bilgi sahip olmak için varyans kovaryans matrisine bakabiliriz.
+
+```{r echo=TRUE}
+cov(df)
+``` 
+
+Varyans kovaryans matrisine baktığımızda değişkenlerin varyanslarının değişiklik gösterdiği yani farklı metrikler ile ölçülebileceği sonucuna varabiliriz. İstenilen faktörleri varyans-kovaryans matrisi ile bulmak yanıltabilir o yüzden korelasyon matrisi ile 6 faktörü elde etmemiz gerekmektedir.
+
+```{r echo=TRUE}
+cordf <- cor(df)
+cordf
+``` 
+
+Kaiser Meyer Olkin (KMO), örneklem uygunluk ölçütüdür. Faktör analizi için KMO değerinin 0.5 ten büyük ve eşit olması istenir.
+
+```{r echo=TRUE}
+library(psych)
+KMO(cordf)
+``` 
+
+KMO istatistiği 0.72 çıkmıştır. Faktör analizi için bu değer orta düzey açıklama olarak ifade edilebilir.
+
+```{r echo=TRUE}
+
+``` 
+
+Bartlett testi, korelasyon matrisinin değişkenler arasında *alpha* anlam düzeyinde ilişki olup olmadığını araştırır. 
+
+```{r echo=TRUE}
+
+``` 
+
+H0 : Değişkenler arasında ilişki yoktur.
+```{r echo=TRUE}
+
+``` 
+
+H1 : Değişkenler arasında ilişki vardır.
+
+```{r echo=TRUE}
+cortest.bartlett(cordf,n=15)
+``` 
+
+Temel bileşenler yöntemi ile 6 adet faktör elde etmek için aşağıdaki fonksiyonu kullanabiliriz. Şimdilik rotasyon yapılmadığından *rotate* parametresi "**none**" olarak ayarlanmıştır.
+
+```{r echo=TRUE}
+fa.n6 <- principal(cordf,nfactors = 6,rotate = "none")
+fa.n6
+```
+
+Başlangıçta her faktörün değişkenleri açıklama oranı verilmiştir. Değişken sayısı kadar faktör kullanıldığı için korelasyon matrisindeki değişimin %100 ünün açıklandığını söyleyebiliriz. İlk matriste yer alan *h2* sütununun altında değişkenlerin açıklama oranı verilmiştir. Zaten tüm değişim açıklandığından değişkenlerin açıklama oranının 1 olduğundan anlayabiliriz. Buradaki değerler faktör yüklerinin karelerinin toplamı ile bulunmuştur. **u2** sütununda ise açıklanamayan değişkenlik yer almaktadır.
+
+Özdeğerler **SS loadings** satırında görülmektedir. Her faktör özdeğer/(toplam özdeğer) açıklar. **Proportion Var** satırında ne kadar açıkladığı verilmiştir. 
+
+Değişkenlerin faktörler tarafından açıklama oranına bakıldığında ve korelasyon matrisinin açıklanma oranına bakıldığında 2 faktörün gayet yeterli olacağı görülmektedir. Çünkü 2 faktör toplam değişkenliğin %93 ünü açıklar ve değişkenler bu faktörlere dağılmıştır. Diğer faktörlerde değişkenlerin açıklanması yok denecek kadar azdır.
+
+Ayrıca buradaki temel bileşenler aşağıdaki şekilde hesaplanabilir.
+
+```{r echo=TRUE}
+eig <- eigen(cordf)
+ozdeğer <- eig$values
+ozvektor <- eig$vectors
+
+#sqrt(ozdeger[i])*ozvektor[,i]
+```
+
+Değişkenlerin faktör 1e ve faktör 2 ye dağıldığını aşağıdaki grafikten de görebiliriz. Faktörlerin ne kadar açıkladığı grafik üzerinde verilmiştir.
+
+```{r echo=TRUE}
+fa.diagram(fa.n6)
+```
+
+Döndürme işlemi orijinal yüklemelerin temel özelliklerini korur; korelasyon matrisini yeniden üretir ve tüm temel varsayımları karşılar. Noktaların dönüşü, kordinatların yeni eksenlere göre (faktörlere) göre verir. Faktörlerin daha yorumlanabilir olduğu yeni bir referans çerçevesi bulmayı amaçlar. Rotasyonun amacı eksenleri mümkün olduğunca çok noktaya yakın yerleştirmektir. Her değişken grubunu bir faktörle (eksen) ilişkilendirir ve yorumu daha objektif hale getirir. 
+Bunun için ilgisiz rotasyon olarak bilinen varimax döndürme yöntemini kullanabiliriz.
+
+```{r echo=TRUE}
+factors <- fa.n6$loadings
+fa.n6.varimax <-varimax(factors)$loadings
+fa.n6.varimax
+```
+
+Varimax döndürme yöntemi kullanıldıktan sonra 2. faktörün altındaki x4 değişkeni 3. faktöre yüklenmiştir. İlk grafik referans alındığında 1. faktördeki bazı yükler 0.1 lik düşüş yaşamıştır ancak 2. faktörün altındaki x3 değişken yükünde 0.1 lik bir artık gözlemlenmiş ve 6 faktörün içerisinden 3 tane kullanılabilir faktörler elde edilmiştir. Diğer faktörlerin yükü oldukça az olduğundan grafikte görüntülenmemiştir.
+
+```{r echo=TRUE}
+fa.diagram(fa.n6.varimax)
+```
+
+Faktör skorlarının incelemek adına aşağıdaki grafiğe bakabiliriz
+
+```{r echo=TRUE}
+par(mfrow = c(1,2))
+
+data <- c(x1,x2,x3,x4,x5,x6)
+plot(density(data), 
+     main = "All Variables")
+
+fa.n6s <-factor.scores(df,fa.n6)
+factor.s <- fa.n6s$scores
+
+plot(density(factor.s), 
+     main = "Factor Scores")
+```
+
+### **b)**
+### *i)* 
+1’den büyük olan özdeğer sayısına göre faktörleşme yapısını oluşturarak faktör yükleri matrisini elde ediniz ve sonuçları değerlendiriniz?
+
+```{r echo=TRUE}
+eig <- eigen(cordf)
+eig$values
+```
+
+Özdeğerlere baktığımızda 1 den büyük 4.29 ve 1.29 özdeğerler vardır.
+
+```{r echo=TRUE}
+scree(cordf,factors = FALSE)
+```
+
+1. sorunun a şıkkında belirtildiği üzere korelasyon matrisi ile faktör analizi gerçekleştirilmiştir.
+
+*nfactors* parametresine faktör sayısını girerek döndürme yapmadan yorumlamak için aşağıdaki işlem gerçekleştirilir.
+
+```{r echo=TRUE}
+library(GPArotation)
+fa.n2 <- principal(cordf,nfactors = 2,rotate = "none")
+fa.n2
+```
+
+2 faktörle 6 değişkenin %93 oranında açıklandığı görülmektedir. Ayrıca değişkenlerin yükleri faktörler altında yüksektür bu da olmasını istediğimiz bir durumdur. Yine de 1. faktörde x3 ve x4 değişkeninin %48 lik bir faktör yükü bulunmaktadır. Yorumlanabilirlik için faktör döndürmesi kullanılabilir. 
+
+```{r echo=TRUE}
+par(mfrow = c(1,1))
+fa.diagram(fa.n2)
+```
+
+Faktör yüklerinin hangi faktörler altında toplandığını grafikte verilmiştir.
+
+Bu faktör yüklerinin yorumlanması ve faktör analizine uygun olması için 2 rotasyon türünden varimax ve promax seçilmiştir.
+
+2 rotasyon türünün faktörleri ne kadar değiştirdiğini incelemek amacıyla aşağıdaki grafik incelenebilir.
+
+```{r echo=TRUE}
+factors2 <- fa.n2$loadings
+fa.n2.varimax <-principal(cordf,nfactors = 2,rotate = "varimax")
+fa.n2.promax <- principal(cordf,nfactors = 2,rotate = "promax")
+
+
+par(mfrow = c(1,3))
+plot(fa.n2$loadings[,1], 
+     fa.n2$loadings[,2],
+     xlab = "Factor 1", 
+     ylab = "Factor 2", 
+     ylim = c(-1,1),
+     xlim = c(-1,1),
+     main = "No rotation")
+text(fa.n2$loadings[,1], 
+     fa.n2$loadings[,2],
+     col="red")
+abline(h = 0, v = 0)
+
+plot(fa.n2.varimax$loadings[,1], 
+     fa.n2.varimax$loadings[,2],
+     xlab = "Factor 1", 
+     ylab = "Factor 2", 
+     ylim = c(-1,1),
+     xlim = c(-1,1),
+     main = "Varimax rotation")
+
+text(fa.n2.varimax$loadings[,1], 
+     fa.n2.varimax$loadings[,2],
+     col="blue")
+abline(h = 0, v = 0)
+
+plot(fa.n2.promax$loadings[,1], 
+     fa.n2.promax$loadings[,2],
+     xlab = "Factor 1", 
+     ylab = "Factor 2",
+     ylim = c(-1,1),
+     xlim = c(-1,1),
+     main = "Promax rotation")
+text(fa.n2.promax$loadings[,1], 
+     fa.n2.promax$loadings[,2],
+     col="green")
+abline(h = 0, v = 0)
+
+```
+
+2 Döndürme yönteminin de faktör değerlerinin değiştirmede çok az etkili olduğu grafikte görülmektedir. Ayrıca faktör yüklerinin eksenlere uzaklıklara bakılarak yakın olduğu eksen ile ilişkilendirilebilir. İlişkisiz bir döndürme yapıyorsak burada dileğimiz bir eksene yakın olması ve diğer eksenlere uzak olmasıdır. 
+
+### *ii)* 
+Faktör katsayıları matrisi ile faktör skorları matrisini bulunuz?
+
+Varimax döndürme yöntemi için faktör skorları aşağıda verilmiştir
+
+```{r echo=TRUE}
+fa.n2.varimaxs <-factor.scores(df,fa.n2.varimax)
+fa.n2.varimaxs$scores
+```
+
+Promax döndürme yöntemi için faktör skorları aşağıda verilmiştir.
+
+```{r echo=TRUE}
+fa.n2.promaxs <-factor.scores(df,fa.n2.promax)
+fa.n2.promaxs$scores
+```
+
+## Soru 2
+İleride basketbol 19 yaş “genç milli takımına giremeyecek sporcular” ile “Genç Yedek-1” ve “Genç Ana Kadro” milli takımlarına girebilecek sporcuları yıldız takımlarında iken belirlemek amacıyla yürütülen ve 6 yıl süren bir çalışmada yıldızlar (yaş:13-15) kategorisi Türkiye şampiyonalarında ilk altıda yer alan
+takımların sporcularının bir çok özelliği kaydedilmiştir. Bu özelliklerden üç tanesi; : Vücut yağ yüzdesi (%), :Squat Sıçrama Yüksekliği (cm), :Kuvvet İndeksi dikkate alınarak bu sporcular arasından 4-6 yıl sonra 19 yaş genç milli takımlar kadrolarında yer alanlar ve alamayanlar belirleniyor. Veriler aşağıdaki tabloda verilmiştir. Bu çalışma sonucunda elde edilen verilerle uygun ayırıcı fonksiyonlar elde edilebilirse,
+19 yaş milli takımlarına giremeyecek ya da takımlardan birine girebilecek sporcu ya da sporcuları 4-6 yıl önceden belirleyebilmek mümkün olabilecektir. Bu ise antrenörlerin, milli takımlara girebilecek sporcuları çok önceden belirleyebilmesi anlamına gelmektedir. 
+
+## *a)*
+Grupları ayırmada kullanılabilecek olan ayırma fonksiyonlarının sayısını ve anlamlı boyut (ayırıcı fonksiyon) sayısını belirleyiniz?
+
+```{r echo=TRUE}
+setwd("C:/Users/irlrl/")
+soru2 <- read.csv("soru2.csv")
+head(soru2)
+```
+
+Veri hakkında daha fazla bilgiye sahip olmak için gruplara göre dağılım grafiklerine bakabiliriz.
+
+```{r echo=TRUE}
+library(car)
+par(mfrow=c(1,1))
+scatterplotMatrix(soru2[0:30,1:3])
+scatterplotMatrix(soru2[31:60,1:3])
+scatterplotMatrix(soru2[61:90,1:3])
+```
+
+Her grup için dağılım grafiklerine baktığımızda değişkenlerin normal dağılım eğrilerine benzediğini söyleyebiliriz. Ancak discriminant analizi yapmamız için çok değişkenli normal dağılım testlerini kullanmamız gerekmekterdir. Burada mardianın testinden yararlanabiliriz.
+
+```{r echo=TRUE}
+mardia(soru2[,1:3])
+```
+
+Grafik yöntem ile baktığımızda sondaki 3 gözlemin çizgiden uzak olduğunu söyleyebiliriz. Yine de çok değişkenli normalliği engelleyeceği düşünülmemektedir. Bunu desteklemek amacıyla marianın testi gerçekleştirilmiştir.
+
+```{r echo=TRUE}
+library(MVN)
+mvn(data = soru2, subset = "grup", mvnTest = "mardia", desc = FALSE)
+```
+
+3 grup içinde mardianın basıklık ve çarpıklık katsayıları çok değişkenli normal dağılım için kabul edilmiştir.
+
+Hangi discriminant analizini seçeceğimize karar vermek için varyansların homojenliğine bakmamız gerekmektedir. Eğer varyans-kovaryans matrisleri homojen ise lineer discriminant analizi uygulanmalıdır. Değilse kuadratik (karesel) discriminant analizi uygulamamız gerekmektedir. 
+
+```{r echo=TRUE}
+```
+
+H0 : Σ1 = Σ2 = Σ3 = Σ
+
+```{r echo=TRUE}
+```
+
+H1 : en az bir Σi ve Σj farklıdır.
+
+```{r echo=TRUE}
+library(heplots)
+boxM(soru2[,1:3], soru2[,4])
+```
+
+BoxM testi sonucunda *p değeri* 0.2089 çıkmıştır. Belirlenen alpha anlam düzeyinin üstünde olduğundan H0 hipotezimizi kabul edebiliriz. Varyans kovaryans matrisleri eşittir.
+
+```{r echo=TRUE}
+```
+
+Lineer discriminant analizini gerçekleştirmek için lda fonksiyonundan yararlanabiliriz.
+
+```{r echo=TRUE}
+library(MASS)
+fit.LDA <- lda(grup ~ X1+X2+X3,data = soru2)
+fit.LDA
+```
+
+Her gruptan eşit gözlemler alındığını, ve grupların değişkenlere göre ortalamalarını yukarıdaki açıklamada görebiliriz. 3 değişkenimiz olduğu için p-1 yani 2 tane lineer ayırma fonksiyonumuz oluşmuştur. Bunlardan ilki varyansın 0.9136ini diğer ayırma fonksiyonu ise 0.0864 unu tek başına açıklamaktadır. *Coefficients of linear discriminants:* sekmesinde discriminant katsayıları bulunmaktadır.
+
+Analiz sonrasında *Predict* fonksiyonu ile gözlemler tahmin edilmiş *caret* paketindeki *confusionMatrix* fonksiyonu ile performansı test edilmiştir.
+
+```{r echo=TRUE}
+pred.LDA <- predict(fit.LDA,newdata = soru2[,1:3])$class
+
+
+library(caret)
+confusionMatrix(factor(soru2[,4]),factor(pred.LDA))
+```
+
+Lineer discriminant analizinin performansı %80dir. Genç ana kadro grubunun gözlemlerinin 4 ü genç yedek ve 2 si girmeyenler olarak yanlış tahmin edilmiştir. Genç yedek grubundan gözlemlerinin 4 ü genç ana kadro ve girmeyen olarak yanlış tahmin edilmiştir. Girmeyenler grubundan ise 6 tane genç yedek olarak yanlış tahmin edilmiştir. 2 grup arasında yanlış tahmin edilen sayısının fazla olmasını bu grupların birbirine yakın olduğu şeklinde yorumlayabiliriz.
+
+
